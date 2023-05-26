@@ -67,7 +67,7 @@ export function $isBannerNode(node: LexicalNode): node is BannerNode {
   return node instanceof BannerNode;
 }
 
-export const INSERT_BANNER_COMMAND = createCommand("insertBanner");
+export const INSERT_BANNER_COMMAND = createCommand("INSERT_BANNER_COMMAND");
 
 export function BannerPlugin(): null {
   const [editor] = useLexicalComposerContext();
