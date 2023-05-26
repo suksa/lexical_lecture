@@ -53,7 +53,7 @@ const ImageComponent = ({ src, nodeKey }: any) => {
 
   return (
     <>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", display: "inline-block" }}>
         {isSelected && (
           <button
             onClick={onClick}

@@ -157,27 +157,30 @@ function Editor() {
   };
 
   return (
-    <LexicalComposer initialConfig={initialConfig}>
-      <RichTextPlugin
-        contentEditable={<ContentEditable id="editor" />}
-        placeholder={<div></div>}
-        ErrorBoundary={LexicalErrorBoundary}
-      />
-      {/* <OnChangePlugin onChange={onChange} /> */}
-      {/* <MyOnChangePlugin onChange={(editorState) => console.log(editorState)} /> */}
-      <HistoryPlugin />
-      <MyHeadingPlugin />
+    <>
+      <button type="button">z</button>
+      <LexicalComposer initialConfig={initialConfig}>
+        <RichTextPlugin
+          contentEditable={<ContentEditable id="editor" />}
+          placeholder={<div></div>}
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        {/* <OnChangePlugin onChange={onChange} /> */}
+        {/* <MyOnChangePlugin onChange={(editorState) => console.log(editorState)} /> */}
+        <HistoryPlugin />
+        <MyHeadingPlugin />
 
-      <BannerPlugin />
-      <InsertBannerBtn />
+        <BannerPlugin />
+        <InsertBannerBtn />
 
-      <ImagePlugin />
-      <InsertImageBtn />
+        <ImagePlugin />
+        <InsertImageBtn />
 
-      <MyCustomAutoFocusPlugin />
+        <MyCustomAutoFocusPlugin />
 
-      <TreeViewPlugin />
-    </LexicalComposer>
+        <TreeViewPlugin />
+      </LexicalComposer>
+    </>
   );
 }
 
