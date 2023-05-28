@@ -5,7 +5,7 @@ import {
   $isRangeSelection,
   type EditorState,
 } from "lexical";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
@@ -149,6 +149,8 @@ function onError(error: Error) {
 }
 
 function Editor() {
+  const [selectImg, setSelectImg] = useState(0)
+  
   const initialConfig = {
     namespace: "MyEditor",
     theme,

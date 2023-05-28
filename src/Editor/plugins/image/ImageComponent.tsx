@@ -4,6 +4,7 @@ import { useLexicalNodeSelection } from "@lexical/react/useLexicalNodeSelection"
 import { $wrapNodeInElement, mergeRegister } from "@lexical/utils";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
+  $createParagraphNode,
   $getNodeByKey,
   $getSelection,
   $setSelection,
@@ -14,6 +15,8 @@ import { $isImageNode } from "./ImagePlugin";
 
 const ImageComponent = ({ src, nodeKey }: any) => {
   const [stayActive, setStayActive] = useState(false);
+  const [isPrevParagraph, setIsPrevParagraph] = useState(false)
+  const [isNextNull, setIsNextNull] = useState(false)
 
   const imageRef = useRef<null | HTMLImageElement>(null);
 
@@ -40,9 +43,45 @@ const ImageComponent = ({ src, nodeKey }: any) => {
     });
   };
 
-  const onClickMove = (event: any) => {
+  const onClickMove = (event: any, direction: 'up' | 'down') => {
     event.stopPropagation();
+
+    editor.update(() => {
+      
+      const node = $getNodeByKey(nodeKey);
+      if (direction === 'up') {
+        const prev = node.getPreviousSibling()
+        if (prev) {
+          prev.insertBefore(node);
+        }
+      } else {
+        const next = node.getNextSibling()
+        if (next) {
+          next.insertAfter(node);
+        }
+      }
+
+    });
+
+    // const targetBlockElem = getBlockElement(anchorElem, editor, event);
+
+    
   }
+
+  const onClickP = (direction: 'top' | 'bottom') => {
+    editor.update(() => {
+      const node = $getNodeByKey(nodeKey);
+      if (!node) return
+      if (direction === 'top') {
+        node?.insertBefore($createParagraphNode())
+        $setSelection(node.selectPrevious());
+      } else {
+        node?.insertAfter($createParagraphNode())
+        $setSelection(node.selectNext());
+      }
+    })
+  }
+  
 
   useEffect(() => {
     const unregister = mergeRegister(
@@ -69,17 +108,38 @@ const ImageComponent = ({ src, nodeKey }: any) => {
     };
   }, [clearSelection, editor, setSelected]);
 
+  useEffect(() => {
+    editor.registerUpdateListener(({ editorState }) => {
+      // onChange(editorState);
+      // console.log(editorState)
+      
+      editorState.read(() => {
+
+        const node = $getNodeByKey(nodeKey);
+        const prev = node?.getPreviousSibling()
+        const next = node?.getNextSibling()
+        setIsPrevParagraph(prev?.__type === 'paragraph')
+        setIsNextNull(next === null)
+      });
+
+    });
+  }, [editor, nodeKey]);
+  
+
+
   return (
     <>
       <div style={{ position: "relative", display: "inline-block" }}>
+        {!isPrevParagraph && <button onClick={() => onClickP('top')} style={{ position: "absolute", top: -10, left: -10, width: document.querySelector('#editor').clientWidth, opacity: 0.8 }}>add paragraph</button>}
+        {isNextNull && <button onClick={() => onClickP('bottom')} style={{ position: "absolute", bottom: -10, left: 0, right: 0, width: document.querySelector('#editor').clientWidth, opacity: 0.8 }}>add paragraph</button>}
+        <button
+            onClick={onClick}
+            style={{ position: "absolute", top: 10, left: 10 }}
+          >
+            on
+        </button>
         {isSelected && (
           <>
-            <button
-              onClick={onClick}
-              style={{ position: "absolute", top: 10, left: 10 }}
-            >
-              on
-            </button>
             <button
               onClick={onClickDelete}
               style={{ position: "absolute", top: 10, left: 50 }}
@@ -87,13 +147,13 @@ const ImageComponent = ({ src, nodeKey }: any) => {
               delete
             </button>
             <button
-              onClick={onClickMove}
+              onClick={(e) => onClickMove(e, 'up')}
               style={{ position: "absolute", bottom: 10, left: 10 }}
             >
               up
             </button>
             <button
-              onClick={onClickMove}
+              onClick={(e) => onClickMove(e, 'down')}
               style={{ position: "absolute", bottom: 10, left: 50 }}
             >
               down
