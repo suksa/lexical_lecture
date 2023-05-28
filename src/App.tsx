@@ -1,12 +1,12 @@
-// import Editor from "./Editor";
+import Editor from "./Editor";
 import Editor2 from "./Editor2";
 
 import "./App.css";
 
 const App = () => {
   return <>
-  {/* <Editor /> */}
-  <Editor2 />
+  <Editor />
+  {/* <Editor2 /> */}
   </>;
 };
 

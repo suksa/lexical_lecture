@@ -158,7 +158,6 @@ function Editor() {
 
   return (
     <>
-      <button type="button">z</button>
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={<ContentEditable id="editor" />}

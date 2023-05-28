@@ -1,7 +1,7 @@
 #editor {
   border: 1px solid #999;
   width: 500px;
-  height: 300px;
+  /* height: 300px; */
   padding: 10px;
   overflow-y: scroll;
 }

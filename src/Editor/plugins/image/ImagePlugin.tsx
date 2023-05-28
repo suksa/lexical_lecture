@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { $wrapNodeInElement, mergeRegister } from "@lexical/utils";
+import { $wrapNodeInElement, mergeRegister, $insertNodeToNearestRoot } from "@lexical/utils";
 import {
   $createParagraphNode,
   $getSelection,
@@ -21,9 +21,11 @@ import {
   SerializedLexicalNode,
   DOMConversionMap,
   DOMConversionOutput,
+  $createTextNode,
 } from "lexical";
 import { useEffect } from "react";
 import ImageComponent from "./ImageComponent";
+import { $setBlocksType } from "@lexical/selection";
 
 function convertImageElement(domNode: Node): null | DOMConversionOutput {
   if (domNode instanceof HTMLImageElement) {
@@ -62,7 +64,7 @@ export class ImageNode extends DecoratorNode<JSX.Element> {
 
   createDOM(config: EditorConfig): HTMLElement {
     console.log("node: createDOM");
-    const span = document.createElement("span");
+    const span = document.createElement("div");
     const theme = config.theme;
     const className = theme.image;
     if (className !== undefined) {
@@ -146,10 +148,7 @@ export function ImagePlugin(): null {
         () => {
           console.log("plugin: registerCommand()");
           const imageNode = $createImageNode({ src: "/img.jpg" });
-          $insertNodes([imageNode]);
-          if ($isRootOrShadowRoot(imageNode.getParentOrThrow())) {
-            $wrapNodeInElement(imageNode, $createParagraphNode).selectEnd();
-          }
+          $insertNodeToNearestRoot(imageNode);
 
           return true;
         },
