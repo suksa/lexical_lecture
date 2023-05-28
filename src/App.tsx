@@ -1,10 +1,13 @@
-import React from "react";
-import Editor from "./Editor";
+// import Editor from "./Editor";
+import Editor2 from "./Editor2";
 
 import "./App.css";
 
 const App = () => {
-  return <Editor />;
+  return <>
+  {/* <Editor /> */}
+  <Editor2 />
+  </>;
 };
 
 export default App;
