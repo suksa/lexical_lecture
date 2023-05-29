@@ -12,8 +12,11 @@ import {
   COMMAND_PRIORITY_LOW,
 } from "lexical";
 import { $isImageNode } from "./ImagePlugin";
+import useSWR from 'swr'
 
 const ImageComponent = ({ src, nodeKey }: any) => {
+  const { data, mutate } = useSWR('activeImage')
+
   const [stayActive, setStayActive] = useState(false);
   const [isPrevParagraph, setIsPrevParagraph] = useState(false)
   const [isNextNull, setIsNextNull] = useState(false)
@@ -28,7 +31,7 @@ const ImageComponent = ({ src, nodeKey }: any) => {
   const onClick = (event: any) => {
     event.stopPropagation();
 
-    alert(1);
+    mutate(nodeKey)
   };
 
   const onClickDelete = (event: any) => {
@@ -134,7 +137,7 @@ const ImageComponent = ({ src, nodeKey }: any) => {
         {isNextNull && <button onClick={() => onClickP('bottom')} style={{ position: "absolute", bottom: -10, left: 0, right: 0, width: document.querySelector('#editor').clientWidth, opacity: 0.8 }}>add paragraph</button>}
         <button
             onClick={onClick}
-            style={{ position: "absolute", top: 10, left: 10 }}
+            style={{ position: "absolute", top: 10, left: 10, background: data === nodeKey ? 'red' : '#eee' }}
           >
             on
         </button>

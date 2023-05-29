@@ -3,10 +3,11 @@ import {
   $getRoot,
   $getSelection,
   $isRangeSelection,
+  ParagraphNode,
   type EditorState,
 } from "lexical";
 import { useEffect, useState } from "react";
-
+import useSWR from 'swr'
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { PlainTextPlugin } from "@lexical/react/LexicalPlainTextPlugin";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
@@ -18,6 +19,7 @@ import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { TreeView } from "@lexical/react/LexicalTreeView";
 import { HeadingNode, $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
+import { NodeEventPlugin } from "@lexical/react/LexicalNodeEventPlugin";
 import {
   BannerNode,
   BannerPlugin,
@@ -28,6 +30,9 @@ import {
   ImagePlugin,
   INSERT_IMAGE_COMMAND,
 } from "./plugins/image/ImagePlugin";
+import { CustomParagraphNode } from "./plugins/nodes/CustomParagraphNode";
+import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
+import Updown from "./plugins/updown";
 
 const theme = {
   // Theme styling goes here
@@ -47,13 +52,22 @@ const theme = {
 //     const root = $getRoot();
 //     const selection = $getSelection();
 
-//     console.log(root, selection);
+//     // console.log(root, selection);
+//     // console.log(root.getChildren())
+//     const nodesFromState = Array.from(editorState._nodeMap.values());
+//     console.log(nodesFromState)
+//     nodesFromState.forEach(v => {
+//       if (v.__type === 'paragraph') {
+//         v.remove()
+//       }
+//     })
+//     // root.getChildren().forEach((v) => {
+//     //   v.remove()
+//     // })
 //   });
 // }
 
-function MyOnChangePlugin(props: {
-  onChange: (editorState: EditorState) => void;
-}) {
+function MyOnChangePlugin() {
   const { onChange } = props;
   const [editor] = useLexicalComposerContext();
 
@@ -149,14 +163,30 @@ function onError(error: Error) {
 }
 
 function Editor() {
-  const [selectImg, setSelectImg] = useState(0)
+  const { data, mutate } = useSWR('activeImage')
   
   const initialConfig = {
     namespace: "MyEditor",
     theme,
     onError,
-    nodes: [HeadingNode, BannerNode, ImageNode],
+    nodes: [
+      HeadingNode,
+      BannerNode,
+      ImageNode,
+      // CustomParagraphNode,
+      // {
+      //     replace: ParagraphNode,
+      //     with: (node: ParagraphNode) => {
+      //         return new CustomParagraphNode();
+      //     }
+      // }
+    ],
   };
+
+  useEffect(() => {
+    mutate('3')
+  }, [])
+  
 
   return (
     <>
@@ -177,9 +207,19 @@ function Editor() {
         <ImagePlugin />
         <InsertImageBtn />
 
+        <Updown />
+
         <MyCustomAutoFocusPlugin />
 
         <TreeViewPlugin />
+
+        {/* <NodeEventPlugin
+            nodeType={CustomParagraphNode}
+            eventType={'focus'}
+            eventListener={(e: Event) => {
+                alert('Nice!');
+            }}
+        /> */}
       </LexicalComposer>
     </>
   );
