@@ -5,6 +5,10 @@ import {
   $isRangeSelection,
   ParagraphNode,
   type EditorState,
+  INSERT_PARAGRAPH_COMMAND,
+  COMMAND_PRIORITY_EDITOR,
+  KEY_ENTER_COMMAND,
+  INSERT_LINE_BREAK_COMMAND,
 } from "lexical";
 import { useEffect, useState } from "react";
 import useSWR from 'swr'
@@ -20,6 +24,11 @@ import { TreeView } from "@lexical/react/LexicalTreeView";
 import { HeadingNode, $createHeadingNode } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { NodeEventPlugin } from "@lexical/react/LexicalNodeEventPlugin";
+import {
+  $getNearestBlockElementAncestorOrThrow,
+  addClassNamesToElement,
+  mergeRegister,
+} from '@lexical/utils';
 import {
   BannerNode,
   BannerPlugin,
@@ -158,6 +167,87 @@ function TreeViewPlugin(): JSX.Element {
   );
 }
 
+const EnterPlugin = () => {
+  const CAN_USE_DOM: boolean =
+  typeof window !== 'undefined' &&
+  typeof window.document !== 'undefined' &&
+  typeof window.document.createElement !== 'undefined';
+  const documentMode =
+  CAN_USE_DOM && 'documentMode' in document ? document.documentMode : null;
+  const IS_CHROME: boolean =
+  CAN_USE_DOM && /^(?=.*Chrome).*/i.test(navigator.userAgent);
+  const IS_IOS: boolean =
+  CAN_USE_DOM &&
+  /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+  !window.MSStream;
+  const IS_SAFARI: boolean =
+  CAN_USE_DOM && /Version\/[\d.]+.*Safari/.test(navigator.userAgent);
+  const IS_APPLE_WEBKIT =
+  CAN_USE_DOM && /AppleWebKit\/[\d.]+/.test(navigator.userAgent) && !IS_CHROME;
+  const CAN_USE_BEFORE_INPUT: boolean =
+  CAN_USE_DOM && 'InputEvent' in window && !documentMode
+    ? 'getTargetRanges' in new window.InputEvent('input')
+    : false;
+  
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    mergeRegister(
+
+      editor.registerCommand(
+        INSERT_PARAGRAPH_COMMAND,
+        () => {
+          const selection = $getSelection();
+  
+          if (!$isRangeSelection(selection)) {
+            return false;
+          }
+          console.log('insert')
+          selection.insertParagraph();
+          return true;
+        },
+        COMMAND_PRIORITY_EDITOR,
+      ),
+      editor.registerCommand<KeyboardEvent | null>(
+        KEY_ENTER_COMMAND,
+        (event) => {
+          const selection = $getSelection();
+          if (!$isRangeSelection(selection)) {
+            return false;
+          }
+          if (event !== null) {
+            // If we have beforeinput, then we can avoid blocking
+            // the default behavior. This ensures that the iOS can
+            // intercept that we're actually inserting a paragraph,
+            // and autocomplete, autocapitalize etc work as intended.
+            // This can also cause a strange performance issue in
+            // Safari, where there is a noticeable pause due to
+            // preventing the key down of enter.
+            if (
+              (IS_IOS || IS_SAFARI || IS_APPLE_WEBKIT) &&
+              CAN_USE_BEFORE_INPUT
+            ) {
+              return false;
+            }
+            event.preventDefault();
+            if (event.shiftKey) {
+              return editor.dispatchCommand(INSERT_LINE_BREAK_COMMAND, false);
+            }
+          }
+          return editor.dispatchCommand(INSERT_PARAGRAPH_COMMAND, undefined);
+        },
+        COMMAND_PRIORITY_EDITOR,
+      )
+    )
+
+    // return () => {
+    //   // removeListener()
+    // }
+  }, [editor])
+  
+  return <div>'엔터플러그인'</div>
+}
+
 function onError(error: Error) {
   console.error(error);
 }
@@ -191,7 +281,7 @@ function Editor() {
   return (
     <>
       <LexicalComposer initialConfig={initialConfig}>
-        <RichTextPlugin
+        <PlainTextPlugin
           contentEditable={<ContentEditable id="editor" />}
           placeholder={<div></div>}
           ErrorBoundary={LexicalErrorBoundary}
@@ -212,6 +302,8 @@ function Editor() {
         <MyCustomAutoFocusPlugin />
 
         <TreeViewPlugin />
+
+        <EnterPlugin />
 
         {/* <NodeEventPlugin
             nodeType={CustomParagraphNode}
